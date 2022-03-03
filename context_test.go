@@ -62,28 +62,31 @@ func CreateCounter(ctx context.Context) chan int {
 	return destination
 }
 
-func TestContextWithCancel(t *testing.T) {
-	fmt.Println("total go routine", runtime.NumGoroutine())
-
-	parent := context.Background()
-	ctx, cancel := context.WithCancel(parent)
-	destination := CreateCounter(ctx)
-	for n := range destination {
-		fmt.Println("counter", n)
-		if n == 10 {
-			break
-		}
-	}
-	cancel() // cancel context
-	time.Sleep(2 * time.Second)
-	fmt.Println("total go routine", runtime.NumGoroutine())
-}
 func TestContextWithTimeout(t *testing.T) {
 	fmt.Println("total go routine", runtime.NumGoroutine())
 
 	parent := context.Background()
 	//ctx, cancel := context.WithCancel(parent)
 	ctx, cancel := context.WithTimeout(parent, 5*time.Second)
+	defer cancel()
+
+	destination := CreateCounter(ctx)
+	for n := range destination {
+		fmt.Println("counter", n)
+		//if n == 10 {
+		//	break
+		//}
+	}
+	// cancel() // cancel context
+	time.Sleep(2 * time.Second)
+	fmt.Println("total go routine", runtime.NumGoroutine())
+}
+func TestContextWithDeadline(t *testing.T) {
+	fmt.Println("total go routine", runtime.NumGoroutine())
+
+	parent := context.Background()
+	//ctx, cancel := context.WithCancel(parent)
+	ctx, cancel := context.WithDeadline(parent, time.Now().Add(5*time.Second))
 	defer cancel()
 
 	destination := CreateCounter(ctx)
